@@ -1,31 +1,35 @@
 package lab5package;
-
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class CoffeeMachine {
-    private ResourceManager resourceManager;
-    private Coffee coffee;
-    private textDisplay display;
+    private ResourceManager resourceManager;        // initialize resource manager for handling resources
+    private TextDisplay textDisplay;        // initialize text display for user interaction
+    private Coins coins;        // initialize coin handling object
 
-    public CoffeeMachine() {
-        resourceManager = new ResourceManager(1000, 1000, 500, 0);
-        display = new textDisplay();
+    //maximum resource values
+    private int water = 1000;
+    private int milk = 1000;
+    private int beans = 500;
+    private int money = 0;
+
+    public static void main(String[] args) {
+        CoffeeMachine coffeeMachine = new CoffeeMachine();  // create instance of coffeemachine
+        coffeeMachine.on(); // start the coffee machine
     }
 
-    public void start() {
+    public CoffeeMachine() {
+        resourceManager = new ResourceManager(water, milk, beans, money);   // initialize the resource manager with maximum values
+        textDisplay = new TextDisplay();    // to be used displaying text 
+        coins = new Coins();    // create coin handling object
+    }
+
+    public void on() {
         Scanner scanner = new Scanner(System.in);
         boolean machineOn = true;
 
+        // turn on the machine and prompt the user to choose the drink
         while (machineOn) {
-            display.printWelcomeBanner();
-
-            System.out.println("What would you like?");
-            System.out.println("Drink      | Price");
-            System.out.println("--------------------");
-            System.out.println("Espresso   | $1.5");
-            System.out.println("Latte      | $3");
-            System.out.println("Cappuccino | $2.5");
+            textDisplay.printWelcomeBanner();
             String choice = scanner.nextLine().toLowerCase();
 
             switch (choice) {
@@ -47,6 +51,7 @@ public class CoffeeMachine {
         }
     }
 
+    // create chosen coffee object
     private void prepareCoffee(String choice) {
         Coffee chosenCoffee;
         switch (choice) {
@@ -63,67 +68,50 @@ public class CoffeeMachine {
                 return;
         }
 
-        while (true){
-            if (resourceManager.checkResources(chosenCoffee)) {
-                double cost = chosenCoffee.getCost();
-                double coinsInserted = insertCoins();
+        // check if there are enough resources 
+        boolean hasEnoughWater = resourceManager.checkWaterResource() > chosenCoffee.getWaterCost();
+        boolean hasEnoughMilk = resourceManager.checkMilkResource() > chosenCoffee.getMilkCost();
+        boolean hasEnoughBeans = resourceManager.checkBeansResource() > chosenCoffee.getBeansCost();
 
-                if (coinsInserted >= cost) {
-                    double change = coinsInserted - cost;
-                    resourceManager.addProfit(cost);
-                    if (change > 0) {
-                        System.out.printf("Your change is $%.2f.\n", change);
-                    }
-                    resourceManager.makeCoffee(chosenCoffee);
-                    display.printCoffeeCup();
-                    System.out.println("Here is your " + chosenCoffee.getName() + ". Enjoy!");
-                    break;
-                    
-                } else {
-                    System.out.println("Sorry, not enough money. Money refunded.");
-                    break;
+        // proceed preparing if enough resources
+        if (hasEnoughWater && hasEnoughMilk && hasEnoughBeans){
+            double cost = chosenCoffee.getCost();
+            textDisplay.printCoinChute();
+            double coinsInserted = coins.insertCoins();
+            boolean insertedEnoughCoins = coinsInserted >= cost;
+
+            // proceed if enough coins are inserted
+            if (insertedEnoughCoins) {
+                System.out.printf("Total Payment: $%.2f\n", coinsInserted);
+                double change = coinsInserted - cost;
+                if (!(change == 0)){
+                    System.out.printf("Your change is $%.2f.\n", change);
                 }
-            } 
-            else{
-                resourceManager.refillResources(chosenCoffee);
-                System.out.println("refilling...");
-                }
+                
+                resourceManager.addProfit(cost);
+                resourceManager.makeCoffee(chosenCoffee);
+                textDisplay.printCoffeeCup();
+                System.out.printf("Here is your %s. Enjoy! ^_^\n", chosenCoffee.getName());
+            
+            // restart if coin inserted is not enough
+            } else {
+                System.out.println("Sorry, not enough money :<. Money refunded.");
+            }
+        } 
+
+        // show what resources is insufficient
+        else{
+            System.out.printf("I'm sorry but the resources is insufficient to make the %s.\n", chosenCoffee.getName());
+            System.out.println("Insufficient resources:");
+            if (!hasEnoughWater){
+                System.out.printf("Water: %d ml\n", chosenCoffee.getWaterCost() -  resourceManager.checkWaterResource());
+            }
+            if (!hasEnoughMilk){
+                System.out.printf("Milk: %d ml\n", chosenCoffee.getMilkCost() - resourceManager.checkMilkResource());
+            }
+            if (!hasEnoughBeans){
+                System.out.printf("Beans: %d g\n", chosenCoffee.getBeansCost() - resourceManager.checkBeansResource());
+            }
             }
         }
-
-
-    private double insertCoins() {
-        Scanner scanner = new Scanner(System.in);
-        double total = 0;
-
-        System.out.println("Please insert coins:");
-        display.printCoinChute();
-        double coinValue[] = {0.25, 0.10, 0.05, 0.01};
-        double coin;
-        String coinName[] = {"Quarters", "Dimes", "Nickels", "Pennies"};
-
-        for (int i = 0; i < 4; i++){
-            while(true){
-                try{
-                System.out.print(coinName[i] + ": ");
-                coin = scanner.nextDouble();
-                if (coin < 0){
-                    throw new InputMismatchException();
-                } 
-                total += coin * coinValue[i];
-                break;
-                }catch (InputMismatchException e){
-                    System.out.println("Invalid coin.");
-                    scanner.nextLine();
-                }
-            }
-        }
-
-        return total;
-    }
-
-    public static void main(String[] args) {
-        CoffeeMachine coffeeMachine = new CoffeeMachine();
-        coffeeMachine.start();
-    }
 }
