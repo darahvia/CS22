@@ -1,11 +1,14 @@
 package lab5package;
 
+// encapsulation
+// bundling of data and methods
+// restricts direct access of object's components
 public class ResourceManager {
     private int water;
     private int milk;
     private int beans;
     private double money;
-
+    
     public ResourceManager(int water, int milk, int beans, double money) {
         this.water = water;
         this.milk = milk;

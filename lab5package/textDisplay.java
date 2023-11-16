@@ -2,7 +2,7 @@ package lab5package;
 public class TextDisplay {
     public void printWelcomeBanner() {
         System.out.printf(
-            "=======================\n" + 
+            "^^^^^^^^^^^^^^^^^^^^^^^^\n" + 
             "      /\\        /\\\n" + 
             "   __/ \\\\______// \\\n" + 
             "  /                 \\\n" + 

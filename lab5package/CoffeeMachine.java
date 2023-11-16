@@ -53,7 +53,7 @@ public class CoffeeMachine {
 
     // create chosen coffee object
     private void prepareCoffee(String choice) {
-        Coffee chosenCoffee;
+        Coffee chosenCoffee;  // polymorphism | different types of coffee are treated as instances of the coffee class
         switch (choice) {
             case "espresso":
                 chosenCoffee = new CoffeeEspresso();
